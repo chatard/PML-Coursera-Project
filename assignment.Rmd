@@ -24,6 +24,9 @@ Stuttgart, Germany: ACM SIGCHI, 2013.
 
 Many thanks for their generosity.
 
+**Rmd file of this page : **  
+
+[Github rmd file:](https://github.com/chatard/PML-Coursera-Project/blob/gh-pages/assignment.Rmd)
 
 # Loading and reading data
  - Loading data:
