@@ -1,0 +1,52 @@
+---
+title: "assignment"
+author: "Jacques Chatard"
+date: "2 avril 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Loading data:
+
+```{r}
+destfile="pml-training.csv"
+fileURL<- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+if (!file.exists(destfile)) {
+        download.file(fileURL ,destfile,method="auto")
+}
+
+```
+```{r}
+destfile="pml-testing.csv"
+fileURL<- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+if (!file.exists(destfile)) {
+        download.file(fileURL ,destfile,method="auto")
+}
+```
+## Reading files:
+```{r}
+pml_training<-read.table(file = "pml-training.csv", header=TRUE, sep=",")
+pml_testing <-read.table(file ="pml-testing.csv", header=TRUE, sep=",")
+dim(pml_training); dim(pml_testing)
+
+```
+
+# loading the required libraries:
+```{r libraries, message=FALSE}
+library(caret); library(kernlab); library(randomForest); library(dplyr)
+library(parallel); library(foreach); library(doParallel)
+
+```
+
+The original data is already divided into two groups of data: pml-training and pml-testing.
+Nevertheless, pml-testing represents only 1 per thousand of the total data.
+I would proceed to a new subdivision of the data from pml-training.
+
+# Cleaning the data:  
+
+
+
+
