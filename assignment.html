@@ -123,13 +123,23 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">assignment</h1>
 <h4 class="author"><em>Jacques Chatard</em></h4>
-<h4 class="date"><em>2 avril 2019</em></h4>
+<h4 class="date"><em>April 2 2019</em></h4>
 
 </div>
 
 
-<div id="loading-data" class="section level1">
-<h1>Loading data:</h1>
+<div id="purpose-of-this-project-and-data-source" class="section level1">
+<h1>Purpose of this project and data source</h1>
+<p>This project is related to the human activity recognition ‘HAR’. We will use the WLE dataset collected by :</p>
+<p>Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human ’13) . Stuttgart, Germany: ACM SIGCHI, 2013.</p>
+<p>[Many thanks for their generosity]</p>
+<p>We will use and compare 3 different models on WLE (weight lifting exercises) dataset. And we will try to estimate the accuracy of the predictions on the ‘classe’ variable which classifies the quality of execution of weight lifting movements.</p>
+</div>
+<div id="loading-and-reading-data" class="section level1">
+<h1>Loading and reading data</h1>
+<ul>
+<li>Loading data:</li>
+</ul>
 <pre class="r"><code>destfile=&quot;pml-training.csv&quot;
 fileURL&lt;- &quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;
 if (!file.exists(destfile)) {
@@ -140,14 +150,14 @@ fileURL&lt;- &quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testi
 if (!file.exists(destfile)) {
         download.file(fileURL ,destfile,method=&quot;auto&quot;)
 }</code></pre>
-<div id="reading-files" class="section level2">
-<h2>Reading files:</h2>
+<ul>
+<li>Reading data:</li>
+</ul>
 <pre class="r"><code>pml_training&lt;-read.table(file = &quot;pml-training.csv&quot;, header=TRUE, sep=&quot;,&quot;)
 pml_testing &lt;-read.table(file =&quot;pml-testing.csv&quot;, header=TRUE, sep=&quot;,&quot;)
 dim(pml_training); dim(pml_testing)</code></pre>
 <pre><code>## [1] 19622   160</code></pre>
 <pre><code>## [1]  20 160</code></pre>
-</div>
 </div>
 <div id="loading-the-required-libraries" class="section level1">
 <h1>loading the required libraries:</h1>

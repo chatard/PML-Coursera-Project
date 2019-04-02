@@ -1,15 +1,31 @@
 ---
 title: "assignment"
 author: "Jacques Chatard"
-date: "2 avril 2019"
+date: "April 2 2019"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+# Purpose of this project  and data source
 
-# Loading data:
+This project is related to the human activity recognition 'HAR'.
+We will use the WLE dataset collected by :   
+
+Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative 
+Activity Recognition of Weight Lifting Exercises. Proceedings of 4th 
+International Conference in Cooperation with SIGCHI (Augmented Human '13) . 
+Stuttgart, Germany: ACM SIGCHI, 2013.
+
+[Many thanks for their generosity]
+
+We will use and compare 3 different models on WLE (weight lifting exercises) dataset.
+And we will try to estimate the accuracy of the predictions on the  'classe' 
+variable which classifies the quality of execution of weight lifting movements.
+
+# Loading and reading data
+ - Loading data:
 
 ```{r}
 destfile="pml-training.csv"
@@ -26,7 +42,7 @@ if (!file.exists(destfile)) {
         download.file(fileURL ,destfile,method="auto")
 }
 ```
-## Reading files:
+- Reading data:
 ```{r}
 pml_training<-read.table(file = "pml-training.csv", header=TRUE, sep=",")
 pml_testing <-read.table(file ="pml-testing.csv", header=TRUE, sep=",")
