@@ -1,5 +1,5 @@
 ---
-title: "assignment"
+title: "Practical Machine Learning Project"
 author: "Jacques Chatard"
 date: "April 2 2019"
 output: html_document
