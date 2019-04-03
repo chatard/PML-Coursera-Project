@@ -1,7 +1,7 @@
 ---
 title: "Practical Machine Learning Project"
 author: "Jacques Chatard"
-date: "April 2 2019"
+date: "April 3 2019"
 output: html_document
 ---
 
@@ -10,7 +10,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 # Purpose of this project  and data source
 
-**We will use and compare 3 different models on WLE (weight lifting exercises) dataset.**
+**In this project we will use and compare 3 different models on WLE (weight lifting exercises) dataset.**  
+
+1- A Boosted trees model 'modlgbm'.  
+2- A Linear discriminant analysis model 'modllda'.  
+3- A Random forest model 'modlrf'.     
+
 **And we will try to estimate the accuracy of the predictions on the  'classe'** 
 **variable which classifies the quality of execution of weight lifting movements.**
 
@@ -26,12 +31,13 @@ Many thanks for their generosity.
 
 **Rmd file of this page : **  
 
-[Github rmd file:](https://github.com/chatard/PML-Coursera-Project/blob/gh-pages/assignment.Rmd)
+[Github rmd file:](https://github.com/chatard/PML-Coursera-Project/blob/gh-pages/assignment.Rmd)  
 
 # Loading and reading data
- - Loading data:
 
-```{r}
+- Loading data: 
+
+```{r Loadingcsv1}
 destfile="pml-training.csv"
 fileURL<- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
 if (!file.exists(destfile)) {
@@ -39,15 +45,15 @@ if (!file.exists(destfile)) {
 }
 
 ```
-```{r}
+```{r Loadingcsv2}
 destfile="pml-testing.csv"
 fileURL<- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
 if (!file.exists(destfile)) {
         download.file(fileURL ,destfile,method="auto")
 }
 ```
-- Reading data:
-```{r}
+- Reading data: 
+```{r readingdata}
 pml_training<-read.table(file = "pml-training.csv", header=TRUE, sep=",")
 pml_testing <-read.table(file ="pml-testing.csv", header=TRUE, sep=",")
 dim(pml_training); dim(pml_testing)
@@ -57,7 +63,7 @@ dim(pml_training); dim(pml_testing)
 # loading the required libraries:
 ```{r libraries, message=FALSE}
 library(caret); library(kernlab); library(randomForest); library(dplyr)
-library(parallel); library(foreach); library(doParallel)
+library(parallel); library(foreach); library(doParallel); library(lattice)
 
 ```
 
@@ -67,6 +73,167 @@ I would proceed to a new subdivision of the data from pml-training.
 
 # Cleaning the data:  
 
+From original pml-training data:  
+
+## Near-zero variance predictors:
+1 . I will remove them from the data.  
+
+2 . checking if outcome 'classe' variable has not disappeared.
+
+```{r nearzerovar}
+
+x = nearZeroVar(pml_training)
+newBaseData <- pml_training[, -x]
+dim(newBaseData)
+#checking if outcome 'classe' variable has not disappeared :
+"classe" %in% names(newBaseData)
+
+```
+
+## I will remove column of variables with na values:
+```{r removingNa}
+NA_cols <- sapply(newBaseData, function(x) sum(is.na(x))) >0
+newBaseData<-newBaseData[, NA_cols==FALSE]
+dim(newBaseData)
+```
+
+## removing six first columns: 
+These variables relate to the identification of participants and the time periods in which observations were recorded and they have no relation to the predictors.
+
+ 
+```{r remove6firstcols}
+newBaseData <- newBaseData[, -(1:6)]
+dim(newBaseData)
+
+```
+
+
+#Splitting  cleaned  data: data partition: 
+
+```{r datapartition}
+
+inTrain <- createDataPartition(newBaseData$classe, p =0.70, list = FALSE)
+training <- newBaseData[inTrain,]
+testing <- newBaseData[-inTrain,]
+dim(training);dim(testing)
+
+```
+
+# Defining three models  
+
+## First : define training control:
+
+Each of the 3 models uses the named variable "classe" as outcome variable.
+It is the criterion of judgment of the good execution of the weight lifting.
+'A' corresponds to a correctly performed movement.
+The 4 other classes are a classification of specific mistakes in the realization of the movement.
+
+We have choosen a 5-fold cross validation to estimate the prediction error:
+
+```{r traincontrolSettings}
+set.seed(1234)
+Ctrl <- trainControl(method = "cv",
+                           number = 5,
+                           allowParallel = TRUE)
+```
+
+
+## Boosted trees model:
+
+```{r gbmModel}
+
+# Boosted trees model:
+
+set.seed(1234)
+modlgbm <- train(classe ~ ., data= training, method="gbm", trControl=Ctrl, verbose = FALSE)
+
+modlgbm
+
+```
+
+#Linear discriminant analysis model:  
+
+```{r ldaModel}
+
+# Linear discriminant analysis model: 
+set.seed(1234)
+modllda <- train(classe ~ ., data =training, method="lda", trControl=Ctrl, verbose = FALSE)
+
+modllda
+#modllda$results
+
+```
 
 
 
+##Random Forest model:
+
+```{r rfModel }
+
+# Random Forest model:
+set.seed(1234)
+
+modlrf <- train(classe ~., method="rf", data=training, trControl=Ctrl, verbose = FALSE)
+                  
+modlrf
+```
+
+
+
+##Variable importance: 
+
+```{r varimp }
+varImp(modlrf)
+plot(varImp(modlrf),top=21)
+
+```
+
+```{r rfFinalmodel}
+modlrf$finalModel
+```
+# Comparison of the 3 models:
+
+```{r modelsComparison}
+results <- resamples(list(GBM=modlgbm, LDA=modllda, RF=modlrf))
+summary(results)
+```
+## Model selection:
+
+
+From this comparison, it follows that the best model is: random forest model.
+So this is the one I will choose.
+
+## Out of sample error: 
+
+```{r}
+RFoutSample<-1-mean(results$values[, "RF~Accuracy"])
+RFoutSample
+GBMoutSample<-1-mean(results$values[, "GBM~Accuracy"])
+GBMoutSample
+LDAoutSample<-1-mean(results$values[, "LDA~Accuracy"])
+LDAoutSample
+
+```
+
+
+## Sampling in training
+```{r predontraining}
+trainingSample = predict(modlrf, training)
+confusionMatrix(training$classe, trainingSample)
+```
+
+##Sampling in testing
+
+```{r predontesting}
+testingSample = predict(modlrf, testing)
+confusionMatrix(testing$classe,testingSample)
+```
+
+## Predicting Classe of Testing Data Set
+
+Utilize the prediction model on the testing data set.
+
+```{r RFpredonpml_testing}
+predictRF <- predict(modlrf, newdata=pml_testing)
+predictRF
+```
