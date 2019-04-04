@@ -25,11 +25,14 @@ We will use the WLE dataset collected by :
 Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative 
 Activity Recognition of Weight Lifting Exercises. Proceedings of 4th 
 International Conference in Cooperation with SIGCHI (Augmented Human '13) . 
-Stuttgart, Germany: ACM SIGCHI, 2013.
+Stuttgart, Germany: ACM SIGCHI, 2013.  
+Many thanks for their generosity.   
 
-Many thanks for their generosity.
+### Url about WLE data set:  
+ 
+[more info](http://groupware.les.inf.puc-rio.br/har#weight_lifting_exercises)
 
-**Rmd file of this page : **  
+### Rmd file of this page :  
 
 [Github rmd file:](https://github.com/chatard/PML-Coursera-Project/blob/gh-pages/assignment.Rmd)  
 
@@ -73,7 +76,7 @@ I would proceed to a new subdivision of the data from pml-training.
 
 # Cleaning the data:  
 
-From original pml-training data:  
+To get clean data, I will use the original data that comes from 'pml_training'.
 
 ## Near-zero variance predictors:
 1 . I will remove them from the data.  
@@ -90,15 +93,16 @@ dim(newBaseData)
 
 ```
 
-## I will remove column of variables with na values:
+## Also, I will remove column of variables with na values:
 ```{r removingNa}
 NA_cols <- sapply(newBaseData, function(x) sum(is.na(x))) >0
 newBaseData<-newBaseData[, NA_cols==FALSE]
 dim(newBaseData)
 ```
 
-## removing six first columns: 
-These variables relate to the identification of participants and the time periods in which observations were recorded and they have no relation to the predictors.
+## And finally, I will remove the first 6 columns of variables:    
+
+These variables relate to the identification of participants and the time periods in which observations were recorded and these variables are not predictor variables.
 
  
 ```{r remove6firstcols}
@@ -108,7 +112,7 @@ dim(newBaseData)
 ```
 
 
-#Splitting  cleaned  data: data partition: 
+#Splitting:   cleaned data partition:   
 
 ```{r datapartition}
 
@@ -121,14 +125,11 @@ dim(training);dim(testing)
 
 # Defining three models  
 
-## First : define training control:
+## Before definining models we have to define training control:
 
-Each of the 3 models uses the named variable "classe" as outcome variable.
-It is the criterion of judgment of the good execution of the weight lifting.
-'A' corresponds to a correctly performed movement.
-The 4 other classes are a classification of specific mistakes in the realization of the movement.
-
-We have choosen a 5-fold cross validation to estimate the prediction error:
+In order to optimize the training phase to the RAM resources available 
+I have to find a suitable configuration. So  I configure a 'traincontrol' object:  
+I  choose a 5-fold for  cross-validation:   
 
 ```{r traincontrolSettings}
 set.seed(1234)
@@ -137,8 +138,15 @@ Ctrl <- trainControl(method = "cv",
                            allowParallel = TRUE)
 ```
 
+## Models:
 
-## Boosted trees model:
+Each of the 3 models will use the named variable **"classe" as outcome variable**.
+It is the criterion of judgment of the good execution of the weight lifting.
+'A' corresponds to a correctly performed movement.
+The 4 other classes are a classification of specific mistakes in the realization of the movement.  
+
+
+**1- Boosted trees model:**  
 
 ```{r gbmModel}
 
@@ -146,74 +154,84 @@ Ctrl <- trainControl(method = "cv",
 
 set.seed(1234)
 modlgbm <- train(classe ~ ., data= training, method="gbm", trControl=Ctrl, verbose = FALSE)
-
-modlgbm
+#modlgbm
 
 ```
 
-#Linear discriminant analysis model:  
+**2- Linear discriminant analysis model:**    
 
 ```{r ldaModel}
 
 # Linear discriminant analysis model: 
 set.seed(1234)
 modllda <- train(classe ~ ., data =training, method="lda", trControl=Ctrl, verbose = FALSE)
-
-modllda
-#modllda$results
+#modllda
 
 ```
 
 
 
-##Random Forest model:
+**3- Random Forest model:**  
+
 
 ```{r rfModel }
 
 # Random Forest model:
 set.seed(1234)
-
 modlrf <- train(classe ~., method="rf", data=training, trControl=Ctrl, verbose = FALSE)
-                  
-modlrf
+#modlrf
 ```
 
 
 
-##Variable importance: 
+##Variable importance:  
+
+Finding the most important predictors:
+Here I use the caret package function varimp() to find most important predictors 
+with a specific model (random forest).
+
+And I plot the Top 20 predictors.
 
 ```{r varimp }
 varImp(modlrf)
-plot(varImp(modlrf),top=21)
+plot(varImp(modlrf),top=20)
 
 ```
 
 ```{r rfFinalmodel}
-modlrf$finalModel
+#modlrf$finalModel
 ```
 # Comparison of the 3 models:
+
+### Out of sample error:  
+
+It's important to have an idea of 'out sample error'
+for each of the models. For that we will make the estimate on a resampling.
 
 ```{r modelsComparison}
 results <- resamples(list(GBM=modlgbm, LDA=modllda, RF=modlrf))
 summary(results)
 ```
-## Model selection:
+
+
+```{r resamplingresults}
+RFoutSample<-1-mean(results$values[, "RF~Accuracy"])
+GBMoutSample<-1-mean(results$values[, "GBM~Accuracy"])
+LDAoutSample<-1-mean(results$values[, "LDA~Accuracy"])
+
+```
+
+```{r oserror, error=TRUE}
+oseDF <- data.frame(model= c("RF", "GBM", "LDA"),out_s_error = c(RFoutSample, GBMoutSample, LDAoutSample) )
+
+```
+
+
+# Model selection:
 
 
 From this comparison, it follows that the best model is: random forest model.
 So this is the one I will choose.
-
-## Out of sample error: 
-
-```{r}
-RFoutSample<-1-mean(results$values[, "RF~Accuracy"])
-RFoutSample
-GBMoutSample<-1-mean(results$values[, "GBM~Accuracy"])
-GBMoutSample
-LDAoutSample<-1-mean(results$values[, "LDA~Accuracy"])
-LDAoutSample
-
-```
 
 
 ## Sampling in training
@@ -229,7 +247,7 @@ testingSample = predict(modlrf, testing)
 confusionMatrix(testing$classe,testingSample)
 ```
 
-## Predicting Classe of Testing Data Set
+# Predicting Classe of Testing Data Set
 
 Utilize the prediction model on the testing data set.
 
@@ -237,3 +255,23 @@ Utilize the prediction model on the testing data set.
 predictRF <- predict(modlrf, newdata=pml_testing)
 predictRF
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
