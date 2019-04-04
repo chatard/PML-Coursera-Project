@@ -1,7 +1,7 @@
 ---
 title: "Practical Machine Learning Project"
 author: "Jacques Chatard"
-date: "April 3 2019"
+date: "April 4 2019"
 output: html_document
 ---
 
@@ -221,10 +221,11 @@ LDAoutSample<-1-mean(results$values[, "LDA~Accuracy"])
 
 ```
 
-```{r oserror, error=TRUE}
-oseDF <- data.frame(model= c("RF", "GBM", "LDA"),out_s_error = c(RFoutSample, GBMoutSample, LDAoutSample) )
-
-```
+| model 	|  out of sample error 	|
+|-------	|----------------------	|
+| RF    	|  `r RFoutSample`    	|
+| GBM   	| `r GBMoutSample`     	|
+| LDA   	| `r LDAoutSample`     	|
 
 
 # Model selection:
